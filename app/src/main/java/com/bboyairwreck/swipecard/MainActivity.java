@@ -10,7 +10,6 @@ import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.animation.Animation;
 import android.view.animation.AnimationSet;
 import android.view.animation.RotateAnimation;
 import android.view.animation.TranslateAnimation;
@@ -22,7 +21,6 @@ import android.widget.TextView;
 public class MainActivity extends AppCompatActivity implements View.OnTouchListener {
     public static final String TAG = MainActivity.class.getSimpleName();
     private ViewGroup _root;
-    private int curFoodIndex = 0;
     private ImageButton btnNope;
     private ImageButton btnYeah;
     private ImageButton btnClear;
@@ -52,9 +50,6 @@ public class MainActivity extends AppCompatActivity implements View.OnTouchListe
         // Get Root container
         _root = (ViewGroup) findViewById(R.id.root);
 
-        this.curFoodIndex = 0;
-
-
         int buttonSize = 100;
         btnNope = (ImageButton) findViewById(R.id.btnNope);
         btnYeah = (ImageButton) findViewById(R.id.btnYeah);
@@ -64,8 +59,6 @@ public class MainActivity extends AppCompatActivity implements View.OnTouchListe
                 SwipeCardApp.decodeSampledBitmapFromResource(getResources(), R.drawable.nope, buttonSize, buttonSize));
         btnYeah.setImageBitmap(
                 SwipeCardApp.decodeSampledBitmapFromResource(getResources(), R.drawable.yeah, buttonSize, buttonSize));
-        //btnClear.setImageBitmap(
-        //        decodeSampledBitmapFromResource(getResources(), R.drawable.info, buttonSize, buttonSize));
 
 
         this.numCards = MAX_CARDS;
@@ -77,7 +70,7 @@ public class MainActivity extends AppCompatActivity implements View.OnTouchListe
      */
     @Override
     public void onWindowFocusChanged(boolean b) {
-        this.screenHeight = ((ViewGroup) findViewById(R.id.contentMainContainer)).getHeight();
+        this.screenHeight = findViewById(R.id.contentMainContainer).getHeight();
         this.screenWidth = _root.getWidth();
         addCards(MAX_CARDS);
 
@@ -99,7 +92,7 @@ public class MainActivity extends AppCompatActivity implements View.OnTouchListe
         // Create cards in add to root view
         for (int i = 0; i < size; i++) {
             LayoutInflater vi = (LayoutInflater) getApplicationContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-            RelativeLayout card = (RelativeLayout) vi.inflate(R.layout.card_details, null);
+            RelativeLayout card = (RelativeLayout) vi.inflate(R.layout.card_details, null); // ignore this warning because we are adding it at the end
 
             // TODO Change these values to the image/Title in the card
             int cardDrawableID = R.drawable.person_placeholder;
@@ -109,7 +102,7 @@ public class MainActivity extends AppCompatActivity implements View.OnTouchListe
 
             // Set different ID per image card
             imageView.setImageBitmap(
-                    SwipeCardApp.decodeSampledBitmapFromResource(getResources(), R.drawable.person_placeholder, 100, 100));
+                    SwipeCardApp.decodeSampledBitmapFromResource(getResources(), cardDrawableID, 100, 100));
             imageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
 
             // Set Image width & height the size of the card
@@ -119,6 +112,7 @@ public class MainActivity extends AppCompatActivity implements View.OnTouchListe
             TextView tvFoodTitle = (TextView) card.findViewById(R.id.tvFoodTitle);
             tvFoodTitle.setText(cardTitle);
 
+            // Change this is height of card is different than width
             int height = cardWidth;
 
             // Set Card width & height. Add left & top margin to card.
@@ -174,7 +168,7 @@ public class MainActivity extends AppCompatActivity implements View.OnTouchListe
                 v.setRotation(rotation);
                 v.setTranslationX(dif);
 
-                Log.i("OnTouch", "swipePercent = " + swipePercent + "; rotation = " + rotation + "; alpha = " + alpha);
+                Log.d("OnTouch", "swipePercent = " + swipePercent + "; rotation = " + rotation + "; alpha = " + alpha);
                 break;
             // On Release
             case MotionEvent.ACTION_UP:
@@ -224,8 +218,7 @@ public class MainActivity extends AppCompatActivity implements View.OnTouchListe
         };
     }
 
-    private void animateCardOff(View v, float rotation, int animDuration){
-
+    private void animateCardOff(final View v, float rotation, int animDuration){
         float sign = 1;
         if (rotation < 0) {
             sign = -1;
@@ -245,66 +238,35 @@ public class MainActivity extends AppCompatActivity implements View.OnTouchListe
         animSet.addAnimation(rotateAnim);
         animSet.addAnimation(translateAnim);
         animSet.setFillAfter(true);
-        animSet.setAnimationListener(new MyAnimationListener(v));
+        animSet.setAnimationListener(new CardAnimationListener(v, _root, btnYeah, btnNope, new Runnable() {
+            @Override
+            public void run() {
+                // it works without the runOnUiThread, but all UI updates must be done on the UI thread
+                MainActivity.this.runOnUiThread(new Runnable() {
+                    public void run() {
+                        _root.removeView(v);        // removes card from root view
+                        Log.i("onAnimationEnd", "Card removed");
+
+                        btnNope.setEnabled(true);
+                        btnYeah.setEnabled(true);
+
+                        MainActivity.this.numCards--; // decrement number of cards
+
+                        // If down to MIN_CARDS, add more cards
+                        if (numCards <= MIN_CARDS) {
+                            int numOfAddedCards = MAX_CARDS - numCards;
+                            MainActivity.this.addCards(numOfAddedCards);
+                            MainActivity.this.numCards += numOfAddedCards;
+
+                            Log.i("onAnimationEnd", "Added " + numOfAddedCards + " cards to root view");
+                        }
+                    }
+                });
+            }
+        }));
 
         // Animate card off screen and remove it
         v.startAnimation(animSet);
-    }
-
-    /*
-     * If end of animation, removes card view from the root view.
-     * If number of cards in root < MIN_CARDS, then it will add more cards to the root view
-     */
-    public class MyAnimationListener implements Animation.AnimationListener {
-        View v;
-
-        public MyAnimationListener(View v) {
-            this.v = v;
-        }
-
-        /*
-         * Fired when Animation finishes
-         */
-        @Override
-        public void onAnimationEnd(Animation animation) {
-            Log.i("onAnimationEnd", "Animation ended. Removing card");
-            v.setOnTouchListener(null);     // unregister onTouchListener
-
-            // Can only remove a view in Runnable UI Thread in AnimationListener
-            _root.post(new Runnable() {
-                public void run() {
-                    // it works without the runOnUiThread, but all UI updates must be done on the UI thread
-                    MainActivity.this.runOnUiThread(new Runnable() {
-                        public void run() {
-                            _root.removeView(v);        // removes card from root view
-                            Log.i("onAnimationEnd", "Card removed");
-
-                            btnNope.setEnabled(true);
-                            btnYeah.setEnabled(true);
-
-                            MainActivity.this.numCards--; // decrement number of cards
-
-                            // If down to MIN_CARDS, add more cards
-                            if (numCards <= MIN_CARDS) {
-                                int numOfAddedCards = MAX_CARDS - numCards;
-                                MainActivity.this.addCards(numOfAddedCards);
-                                MainActivity.this.numCards += numOfAddedCards;
-
-                                Log.i("onAnimationEnd", "Added " + numOfAddedCards + " cards to root view");
-                            }
-                        }
-                    });
-                }
-            });
-        }
-
-        @Override
-        public void onAnimationStart(Animation animation) {
-            btnNope.setEnabled(false);
-            btnYeah.setEnabled(false);
-        }
-        @Override
-        public void onAnimationRepeat(Animation animation) {}
     }
 
     @Override
