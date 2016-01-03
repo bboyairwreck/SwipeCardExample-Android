@@ -1,4 +1,4 @@
-package com.bboyairwreck.trumpr;
+package com.bboyairwreck.swipecard;
 
 import android.app.Application;
 import android.test.ApplicationTestCase;

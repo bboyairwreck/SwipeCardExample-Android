@@ -5,7 +5,7 @@ android {
     buildToolsVersion "23.0.2"
 
     defaultConfig {
-        applicationId "com.bboyairwreck.trumpr"
+        applicationId "com.bboyairwreck.swipecard"
         minSdkVersion 16
         targetSdkVersion 23
         versionCode 1
