@@ -13,8 +13,51 @@
     tools:showIn="@layout/activity_main"
     tools:context="com.bboyairwreck.trumpr.MainActivity">
 
-    <TextView
-        android:text="Hello World!"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content" />
+    <!-- TODO change id of 'root' -->
+    <RelativeLayout
+        android:id="@+id/root"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        >
+
+    </RelativeLayout>
+
+    <!-- Yeah & Nope Wrapper-->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_alignParentBottom="true"
+        >
+
+        <ImageButton
+            android:id="@+id/btnNope"
+            android:src="@drawable/nope"
+            android:layout_width="0dp"
+            android:layout_height="@dimen/yeahNopeHeight"
+            android:layout_weight="1"
+            android:background="@null"
+            android:scaleType="fitCenter"/>
+
+        <ImageButton
+            android:id="@+id/btnClear"
+            android:src="@drawable/ic_action_discard"
+            android:layout_width="0dp"
+            android:layout_height="70dp"
+            android:layout_weight="1"
+            android:background="@null"
+            android:scaleType="fitCenter"
+            android:layout_gravity="center_vertical"/>
+
+        <ImageButton
+            android:id="@+id/btnYeah"
+            android:src="@drawable/yeah"
+            android:layout_width="0dp"
+            android:layout_height="@dimen/yeahNopeHeight"
+            android:layout_weight="1"
+            android:background="@null"
+            android:scaleType="fitCenter"/>
+
+    </LinearLayout>
+    <!-- end of Yeah & Nope Wrapper-->
 </RelativeLayout>

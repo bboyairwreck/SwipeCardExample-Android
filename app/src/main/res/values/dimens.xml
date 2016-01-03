@@ -3,4 +3,10 @@
     <dimen name="activity_horizontal_margin">16dp</dimen>
     <dimen name="activity_vertical_margin">16dp</dimen>
     <dimen name="fab_margin">16dp</dimen>
+
+    <dimen name="yeahNopeHeight">120dp</dimen>
+    <dimen name="resultsHeight">40dp</dimen>
+    <dimen name="yeahNope_plus_results">202dp</dimen>
+    <dimen name="starPadding">10dp</dimen>
+    <dimen name="starSize">15dp</dimen>
 </resources>
